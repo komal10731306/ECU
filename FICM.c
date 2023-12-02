@@ -10,7 +10,7 @@
 
 struct FICM{
 	int fuel;
-	char* time;
+	char time[30];
 };
 
 struct SDF{
@@ -31,9 +31,6 @@ int random_input(int min,int max)
 	srand(time(0));
 	return rand() % (max-min+1)+min;
 }
-
-
-
 
 int calculate(int speed,int t_pos){
 	fuel =0;
@@ -72,11 +69,12 @@ int main()
 
 	struct FICM  *shared_memory;
 	struct SDF *memory;
+	//int shmid,key_t=23452;
 	int shmid,key_t=23452,speed,pos,temp;
-  
-  	shmid=shmget(key_t,1024,0666| IPC_CREAT);
-  	//printf("KEY OF THE SHARED MEMORY IS %d\n",shmid);
-  
+	shmid=shmget((key_t),1024,0666| IPC_CREAT);
+	printf("KEY OF THESHARED MEMORY IS %d\n",shmid);
+
+	shared_memory =(struct FICM*)shmat(shmid,NULL,0);
   	if(shmid==-1)
   	{
   		printf("SHARED MEMORY NOT ASSIGNED");
@@ -128,7 +126,6 @@ int main()
   	calculate(speed,pos);
   
   	shared_memory->fuel=fuel;
-  	shared_memory->time=f_time;
-  	//printf("FUEL INJECTED : %d\tTIME OF INJECTION:%s\n",shared_memory->fuel,shared_memory->time);
+  	strcpy(shared_memory->time,f_time);
+  	printf("FUEL INJECTED : %d\tTIME OF INJECTION:%s\n",shared_memory->fuel,shared_memory->time);
 }
-
