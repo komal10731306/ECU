@@ -1,54 +1,77 @@
 #include <fcntl.h>
-#include <semaphore.h>
-#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 #include <sys/ipc.h>
-#include <sys/msg.h>
-#include <sys/shm.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <stdint.h>
+#include <sys/msg.h>
+#include <stdbool.h>
 
-struct message {
-  uint8_t reg;
-  int flag[4];
+struct message{
+	//8 bit register  0-key 1-battery 2-armature 3-seat_belt 4-door_lock 5-hand_break
+	uint8_t reg; 
+	//hand break flag
+	bool h_break;
+	bool key; 
+	bool seat; 
+	bool door; 
 };
 
 struct message msg;
-int main() {
 
-  key_t key = 12345;
-  int msgid = msgget(key, 0666 | IPC_CREAT);
+int main(){
 
-  if (msgid == -1) {
-    printf("\nMESSAGE QUEUE NOT CREATED OR NOT FOUND\n");
-    exit(1);
-  }
+	key_t key=12345;
+	int msgid=msgget(key,0666|IPC_CREAT);
 
-  while (1) {
-    msgrcv(msgid, &msg, sizeof(msg), 0, 0);
-    printf("_________________________________________________");
-    if (msg.flag[0] == 0) {
-      printf("\nKEY IS NOT ON\n");
-    }
-    if (msg.flag[1] == 0) {
-      printf("\nSEAT BELTS ARE NOT WORN\n");
-    }
-    if (msg.flag[2] == 0) {
-      printf("\nDOORS ARE NOT LOCKED\n");
-    }
-    if (msg.flag[3] == 0) {
-      printf("\nHANDBREAKS ARE NOT APPLIED\n");
-    }
+	if(msgid==-1)
+	{
+		perror("\nMESSAGE QUEUE NOT CREATED OR NOT FOUND\n");
+		exit(1);
+	}
 
-    if (msg.flag[0] == 1 && msg.flag[1] == 1 && msg.flag[2] == 1 &&
-        msg.flag[3] == 1) {
-      printf("\nSIGNAL IS SENT TO THE IGNITION COIL\n");
-      sleep(3);
-      printf("\nVEHICLE IS ON RIDE SAFE\n");
-      break;
-    }
-  }
-  return 0;
+	while(1)
+	{
+		msgrcv(msgid,&msg,sizeof(msg),0,0);
+		//if((msgrcv(msgid,&msg,sizeof(msg),0,0)==-1));
+		//{
+			//perror("\nMESSAGE NOT RECIEVED\n");
+			//exit(1);
+		//}
+		
+		printf("_________________________________________________");
+		
+		// if block is executed when key flag is 0
+		if(!msg.key)
+		{
+			printf("\nKEY IS NOT ON\n");
+		}
+		
+		if(!msg.seat)
+		{
+			printf("\nSEAT BELTS ARE NOT WORN\n");
+		}
+		
+		if(!msg.door)
+		{
+			printf("\nDOORS ARE NOT LOCKED\n");
+		}
+		
+		if(!msg.h_break)
+		{
+			printf("\nHANDBREAKS ARE NOT APPLIED\n");
+		}
+
+		// when all the flags are set to 1 car gets on
+		if(msg.key && msg.seat && msg.door && msg.h_break)
+		{	
+			printf("\nSIGNAL IS SENT TO THE IGNITION COIL\n");
+			sleep(3);
+			printf("\nVEHICLE IS ON RIDE SAFE\n");
+			break;
+		}
+	}
+	
+	return 0;
 }
