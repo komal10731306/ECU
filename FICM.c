@@ -9,8 +9,8 @@
 #include<time.h>
 
 struct FICM{
-	int fuel;
-	char time[30];
+    int fuel;
+    char time[30];
 };
 
 struct SDF{
